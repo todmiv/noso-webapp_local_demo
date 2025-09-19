@@ -15,7 +15,7 @@ from haystack.document_stores.in_memory import InMemoryDocumentStore
 def create_app():
     app = FastAPI(
         title="СРО НОСО API",
-        description="API для платформы СРО НОСО с ИИ-консультантом",
+        description="API for СРО НОСО with AI consultant",
         version="1.0.0",
     )
 
@@ -85,7 +85,7 @@ def create_app():
 
     @app.get("/")
     async def root():
-        return {"message": "Добро пожаловать в платформу СРО НОСО"}
+        return {"message": "Welcome to СРО НОСО platform"}
 
     @app.get("/api/documents")
     async def get_documents():
@@ -103,11 +103,9 @@ def create_app():
             metadata_path = os.path.join(os.path.dirname(__file__), "app", "documents", "metadata.json")
             with open(metadata_path, "r", encoding="utf-8") as f:
                 documents = json.load(f)
-
             doc_info = next((doc for doc in documents if doc["id"] == doc_id), None)
             if not doc_info:
                 raise HTTPException(status_code=404, detail="Document not found")
-
             doc_path = os.path.join(os.path.dirname(__file__), "app", "documents", doc_info['filename'])
             if not os.path.exists(doc_path):
                 raise HTTPException(status_code=404, detail="Document file not found")
@@ -115,8 +113,12 @@ def create_app():
             with open(doc_path, "r", encoding="utf-8") as f:
                 content = f.read()
 
-            return {"content": content, "metadata": doc_info}
+            # Add logging to verify content is loaded
+            print(f"Returning content for doc_id {doc_id}, length: {len(content)}")
+
+            return {"content": content}
         except Exception as e:
+            print(f"Error in document endpoint: {e}")
             raise HTTPException(status_code=500, detail=str(e))
 
     def simple_chat_response(message: str) -> str:
@@ -128,7 +130,7 @@ def create_app():
         elif "документы" in msg_lower:
             return "Платформа содержит нормативные документы СРО НОСО, включая устав и правила членства. Вы можете просмотреть их в разделе 'Документы'."
         else:
-            return "Я ИИ-консультант платформы СРО НОСО. Задайте вопрос о уставе, членстве или документах организации."
+            return "Я AI-консультант платформы СРО НОСО. Задайте вопрос о уставе, членстве или документах организации."
 
     @app.post("/api/chat")
     async def chat_endpoint(request: ChatRequest):
@@ -150,10 +152,10 @@ def create_app():
             elif any(keyword in msg_lower for keyword in ["контрол", "проверка", "проверки", "мониторинг"]):
                 answer = f"Информация о контроле деятельности членов СРО содержится в следующих документах: {', '.join(relevant_docs)}. Пожалуйста, изучите соответствующие положения в разделе 'Документы'."
             elif any(keyword in msg_lower for keyword in ["компенсационный", "фонд", "возмещение", "обязательства"]):
-                answer = f"Вопросы компенсационных фондов СРО освещены в: {', '.join(relevant_docs)}. Ознакомьтесь с положениями о компенсационных фондах из раздела финансовые документы."
+                answer = f"Вопросы компенсационных фондов СРО НОСО освещены в: {', '.join(relevant_docs)}. Ознакомьтесь с положениями о компенсационных фондах из раздела финансовые документы."
             elif any(keyword in msg_lower for keyword in ["квалификация", "стандарт", "требования", "нормы"]):
                 answer = f"Требования к квалификации и стандарты СРО НОСО изложены в следующих документах: {', '.join(relevant_docs)}. Пожалуйста, изучите раздел 'Правила и стандарты'."
-            elif any(keyword in msg_lower for keyword in ["жалоб", "consider complaints", "разбирательство"]):
+            elif any(keyword in msg_lower for keyword in ["жалоб", "обращение", "разбирательство"]):
                 answer = f"Процедура рассмотрения жалоб СРО освещена в: {', '.join(relevant_docs)}. Ознакомьтесь с положением о процедуре рассмотрения жалоб."
             elif any(keyword in msg_lower for keyword in ["страхование", "риск", "страховой"]):
                 answer = f"Информация о страховании рисков СРО НОСО содержится в: {', '.join(relevant_docs)}. Изучите положение о страховании рисков ответственности."
@@ -166,7 +168,7 @@ def create_app():
 
         except Exception as e:
             print(f"Error in chat endpoint: {e}")
-            # Fallback на простой ответ
+            # Fallback to simple response
             return {"answer": "Извините, произошла ошибка при обработке вашего запроса. Попробуйте задать вопрос в другой форме или ознакомьтесь с документами в разделе 'Документы'."}
 
     return app
