@@ -22,18 +22,21 @@ const Modal: React.FC<ModalProps> = ({
   closeOnBackdropClick = true,
   footer
 }) => {
+  // Если модалка закрыта, не рендерим ничего
+  if (!isOpen) return null;
+
   useEffect(() => {
     const handleEscape = (e: KeyboardEvent) => {
       if (e.key === 'Escape') {
         onClose();
       }
     };
-
-    if (isOpen) {
-      document.addEventListener('keydown', handleEscape);
-      document.body.style.overflow = 'hidden';
-    }
-
+    
+    // Добавляем обработчики только когда модалка открыта
+    document.addEventListener('keydown', handleEscape);
+    document.body.style.overflow = 'hidden';
+    
+    // Очищаем при размонтировании или закрытии
     return () => {
       document.removeEventListener('keydown', handleEscape);
       document.body.style.overflow = 'unset';
@@ -53,18 +56,15 @@ const Modal: React.FC<ModalProps> = ({
     xl: 'max-w-4xl'
   };
 
-  if (!isOpen) return null;
-
   return createPortal(
-    <div className="fixed inset-0 z-50 overflow-y-auto">
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
       {/* Backdrop */}
       <div
         className="fixed inset-0 bg-black bg-opacity-50 transition-opacity"
         onClick={handleBackdropClick}
       />
-
       {/* Modal Container */}
-      <div className="flex min-h-full items-center justify-center p-4">
+      <div className="flex items-center justify-center p-4">
         <div className={`relative w-full ${sizeClasses[size]} transform overflow-hidden rounded-lg bg-white shadow-xl transition-all`}>
           {/* Header */}
           {(title || showCloseButton) && (
@@ -85,12 +85,10 @@ const Modal: React.FC<ModalProps> = ({
               )}
             </div>
           )}
-
           {/* Content */}
-          <div className="px-6 py-4">
+          <div className="px-6 py-4 max-h-[70vh] overflow-y-auto">
             {children}
           </div>
-
           {/* Footer */}
           {footer && (
             <div className="border-t border-gray-200 px-6 py-4">
