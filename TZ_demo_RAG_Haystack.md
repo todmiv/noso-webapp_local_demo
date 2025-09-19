@@ -72,7 +72,7 @@ flowchart TD
 ## Структура проекта
 
 ```
-sro-platform-local/
+noso-webapp_local_demo/
 ├── backend/                 # FastAPI приложение
 │   ├── app/
 │   │   ├── main.py         # Основное приложение FastAPI
